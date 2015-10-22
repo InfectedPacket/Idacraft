@@ -173,7 +173,7 @@ class IDAEngine(object):
 		string_finder.setup(strtypes=_encoding)
 		
 		for index, string in enumerate(string_finder):
-			if filter:
+			if len(_filter) > 0:
 				if re.search(_filter, string):
 					strings.append(string)
 			else:
@@ -182,7 +182,7 @@ class IDAEngine(object):
   
 	def get_string_at(self, _ea):
 		"""
-		
+		Returns the string defined at the given address.
 		"""		
 		stype = idc.GetStringType(_ea)
 		return idc.GetString(_ea, strtype=stype)  
@@ -318,6 +318,11 @@ class IDAEngine(object):
 		return functions;
 
 	def define_function(self, _startea, _endea):
+		"""
+			Defines the bytes/words between the given range as a function. If a
+			segment is already defined, it will be deleted and a new CODE segment will
+			be created.
+		"""
 		result = 0
 		try:
 			prev_seg_type = GetSegmentAttr(_startea-1, SEGATTR_TYPE)
@@ -363,7 +368,39 @@ class IDAEngine(object):
 		
 		return IDAEngine.SUCCESS
 		
+		
+	def save_range_to_file(self, _startea, _endea, _file):
+		"""
+			Saves the bytes in the selected range to the given file.
+			
+			@param _startea The start address of the range. Must be
+					below _endea and greater than 0.
+			@param _endea The end address of the range. Must be greater
+					than _startea.
+			@param _file Path of the file in which bytes will be saved.
+		"""
+		nb_bytes = 0
+		with open(_file, 'wb') as f:
+			for ea in range(_startea, _endea):
+				nb_bytes += 1
+				ea_byte = struct.pack('>H', self.get_byte_at(ea))
+				f.write(ea_byte)
+		
+		print("[+] {:d} byte(s) wrote to {:s}.".format(nb_bytes, _file))
+		
 	def set_comments(self, _startea, _endea, _comments):
+		"""
+			Adds comments to instructions within the given range
+			based on the disassembled instruction of the mnemonic.
+			
+			@param _startea The start address of the range. Must be
+					below _endea and greater than 0.
+			@param _endea The end address of the range. Must be greater
+					than _startea.
+			@param _comments Dictionary where the key is a mnemonic or
+					instruction. If matched, the comment associated with
+					the key will be added to the line.
+		"""
 		for ea in range(_startea, _endea):
 			try:
 				asm = idc.GetDisasm(ea).lower()
