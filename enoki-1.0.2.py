@@ -948,6 +948,40 @@ class Enoki(object):
 		return near_calls
 		
 
+	def get_bytes_between(self, _startea, _endea):
+		"""
+		Returns bytes located between the provided start and end addresses.
+		
+		@param _startea The start address
+		@param _endea The end address
+		@return An array of bytes located between the addresses specified.
+		"""
+		bytes = []
+		if (_startea != BADADDR and _endea != BADADDR):
+			curea = _startea
+			while (curea <= _endea):
+				b = idaapi.get_byte(curea)
+				bytes.append(b)
+				curea += 1
+		return bytes
+	
+	def get_words_between(self, _startea, _endea):
+		"""
+		Returns words located between the provided start and end addresses.
+		
+		@param _startea The start address
+		@param _endea The end address
+		@return An array of words located between the addresses specified.
+		"""
+		words = []
+		if (_startea != BADADDR and _endea != BADADDR):
+			curea = _startea
+			while (curea <= _endea):
+				w = idaapi.get_16bit(curea)
+				words.append(w)
+				curea += 1
+		return words
+	
 	def save_range_to_file(self, _startea, _endea, _file):
 		"""
 		Saves the chunk of bytes between the given start and end addresses into
@@ -969,3 +1003,5 @@ class Enoki(object):
 				print("[-] Error while writing file: {:s}.".format(e.message))
 				return Enoki.FAIL
 		return Enoki.SUCCESS
+
+e = Enoki()
