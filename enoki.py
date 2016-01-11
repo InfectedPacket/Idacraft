@@ -60,6 +60,8 @@ class Enoki(object):
 			Updated: 2016-01-10
 	"""
 	
+	VERSION = "1.0.0"
+	
 	#Specifies a 16bit segment
 	SEG_16	=	0
 	#Specifies a 32bit segment
@@ -89,6 +91,9 @@ class Enoki(object):
 		Constructor of the Enoki engine. Does nothing.
 		"""
 		pass
+		
+	def vers(self):
+		return Enoki.VERSION
 		
 	def make_comment(self, _ea, _comment):
 		"""
@@ -1005,3 +1010,4 @@ class Enoki(object):
 		return Enoki.SUCCESS
 
 e = Enoki()
+print("[+] Enoki {:s} loaded successfully.".format(e.vers()))
