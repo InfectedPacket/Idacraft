@@ -14,7 +14,7 @@ or detecting the actual processor.
 
 ## Usage
 
-To use _Enoki_ with [IDA](https://www.hex-rays.com/products/ida/), simply load the _enoki-*.py_ file into IDA. An instance of the _Enoki_ object will automatically be created in the ```e``` variable or you can create your own
+To use _Enoki_ with [IDA](https://www.hex-rays.com/products/ida/), simply load the _enoki.py_ file into IDA. An instance of the _Enoki_ object will automatically be created in the ```e``` variable or you can create your own
 instance using the following command in the interpreter:
 
 ```
