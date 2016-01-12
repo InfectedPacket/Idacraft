@@ -294,8 +294,9 @@ class Enoki(object):
 		"""
 		Retrieves all strings from the current file matching the
 		regular expression specified in the filter parameter. If no
-		filter value is provided, all strings with the specified encoding
-		are returned.
+		filter value is provided, all strings IDA objects with the specified encoding
+		are returned. To access only the strings and display them in the interpreter,
+		consult the show_all_strings function.
 		
 		Values for the _encoding parameters includes:
 		- Strings.STR_UNICODE
@@ -308,18 +309,38 @@ class Enoki(object):
 		
 		@param _filter Regular expression to filter unneeded strings.
 		@param _encoding Specified the type of strings to seek.
-		@return A list of strings
+		@return A list of strings IDA objects
 		"""		
 		strings = []
 		string_finder = idautils.Strings(False)
 		string_finder.setup(strtypes=_encoding)
 		
 		for index, string in enumerate(string_finder):
-			if filter:
-				if re.search(_filter, string):
+			s = str(string)
+			if len(_filter) > 0 and len(s) > 0:
+				if re.search(_filter, s):
 					strings.append(string)
 			else:
 				strings.append(string)
+		return strings
+  
+	def show_all_strings(self, _filter='', 
+		_encoding=(Strings.STR_UNICODE | Strings.STR_C)):
+		"""
+		This function will display the address and the strings found in the
+		file. This function differs from get_all_strings by printing the results
+		into the interpreter and only the strings are returns, while the 
+		get_all_strings function returns the IDA string objects.
+	
+		@param _filter Regular expression to filter unneeded strings.
+		@param _encoding Specified the type of strings to seek.
+		@return A list of strings
+		"""
+		strings = []
+		strings_objs = self.get_all_strings(_filter, _encoding)
+		for s in strings_objs:
+			strings.append(str(s))
+			print("[>]\t0x{:x}: {:s}".format(s.ea, str(s)))
 		return strings
   
 	def get_string_at(self, _ea):
