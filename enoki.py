@@ -246,12 +246,20 @@ class Enoki(object):
 		
 	def create_string_at(self, _startea, _unicode=False, _terminator="00"):
 		"""
-		TODO: Fix unicode strings
+		Creates a StringItem object at the specified location.
+		@param _startea The start address of the string
+		@param _unicode Specifies whether the string is ASCII or UnicodeDecodeError
+		@param _terminator Specify the terminator character of a sequence. Default is
+				"00"
 		"""
-		terminator = "0000"
-		strend = self.find_next_byte_string(_startea, terminator)
+		# Gets the address of the closest terminator byte/word
+		strend = self.find_next_byte_string(_startea, _terminator)
+		strlen = strend-_startea
 		if strend != idaapi.BADADDR:
-			result = MakeStr(_startea, strend+1)
+			if (_unicode):
+				result = idaapi.make_ascii_string(_startea, strlen, idaapi.ACFOPT_UTF8)
+			else:
+				result = idaapi.make_ascii_string(_startea, strlen, idaapi.ACFOPT_ASCII)
 			if (result == Enoki.FAIL):
 				print "[-] Failed to create a string at 0x{:x} to 0x{:x}.".format(_startea, strend+1)
 				return Enoki.FAIL
@@ -348,9 +356,11 @@ class Enoki(object):
 		Returns the string, if any, at the specified address.
 		@param _ea Address of the string
 		@return The string at the specified address.
-		"""		
-		stype = idc.GetStringType(_ea)
-		return idc.GetString(_ea, strtype=stype)  
+		"""	
+		if (_ea != BADADDR):
+			stype = idc.GetStringType(_ea)
+			return idc.GetString(_ea, strtype=stype)  
+		return ""
   
 	def get_all_comments_at(self, _ea):
 		"""
