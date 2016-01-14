@@ -838,7 +838,7 @@ class Enoki(object):
 		@return Matrix containing the source, destination and name of the functions called.
 		"""
 		# Retrieves the function at _funcea:
-		func = self.get_function_at(_ea)
+		func = self.get_function_at(_funcea)
 		# Boundaries:
 		startea = func.startEA
 		endea = func.endEA
