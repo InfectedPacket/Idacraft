@@ -83,6 +83,25 @@ class Enoki(object):
 	#Used for assessing returns from IDA functions calls.
 	FAIL = 0
 	SUCCESS = 1
+	
+	# Basic colors
+	RED 	= 0x0000FF
+	GREEN 	= 0x00FF00
+	BLUE 	= 0xFF0000
+	YELLOW  = 0x00FFFF
+	WHITE 	= 0xFFFFFF
+	BLACK	= 0x000000
+	# Fancy colors
+	ABSOLUTE_ZERO 		= 0xBA4800
+	AFRICAN_VIOLET		= 0xBE84B2
+	ALIZARIN_CRIMSON 	= 0x3626E3
+	AMBER		=	0x00BFFF
+	APPLE_GREEN	=	0x00B68D
+	AZURE		=	0xFF7F00
+	BABY_BLUE	=	0xF0CF89
+	BABY_PINK	=	0xC2C2F4
+	CADMIUM_ORANGE = 0x2D87ED
+	CITRINE 	=	0xE4D00A
 
 	logger = logging.getLogger(__name__)
 
@@ -897,7 +916,7 @@ class Enoki(object):
 		the depth relative to the first function.
 		"""	
 		# Retrieves the function at _funcea:
-		func = idaapi.get_prev_func(idaapi.get_next_func(_funcea).startEA)			
+		func = self.get_function_at(_funcea)		
 		# Boundaries:
 		startea = func.startEA
 		endea = func.endEA
@@ -920,11 +939,12 @@ class Enoki(object):
 					sub_calls = self.get_all_sub_functions_called(xref.to, _level+1)
 					# Add calls to current ones
 					near_calls.append(call_info)
-					near_calls.append(sub_calls)
+					if (len(sub_calls) > 0):
+						near_calls.append(sub_calls)
 			# Next instruction in the function
 			curea = NextHead(curea)
-		return near_calls		
-			
+		return near_calls	
+		
 	def get_functions_leading_to(self, _funcea):
 		"""
 		This function returns all the functions calling the function at the 
@@ -983,6 +1003,68 @@ class Enoki(object):
 			curea = NextHead(curea)
 		return near_calls
 		
+	def color_all_functions_from(self, _funcea, _color):
+		"""
+		Sets the background color of all functions and sub functions called from the
+		root function specified at the given address, i.e. this function is recursive.
+		This function can be use to trace the call tree of a function. The function
+		will return a matrix of functions calls as per returned by the 
+		get_all_sub_functions_called function if it succeeds. 
+		
+		Note: You may need to scroll around/refresh the GUI for the change to take
+		effect. The background will remain as the default color otherwise.
+		
+		The value of the color must be in the following format: 0xBBGGRR. Some colors
+		are defined in the header of the Enoki class.
+		
+		Example:
+		m = e.get_all_sub_functions_called(0x2CC0, Enoki.BABY_BLUE)
+		print(m)
+		[[0x2C00, 0x2CC0, 'MAIN']]
+		
+		Unlike the get_all_sub_functions_called function, this function will
+		also change the background color in the GUI. 
+		
+		@param _funcea Address within the root function
+		@param _color The background color to set.
+		@return Matrix containing the source, destination, name of the functions calling the
+		function. Enoki.FAIL otherwise.		
+		"""
+		if (_funcea != BADADDR):
+			fct_calls = self.get_all_sub_functions_called(_funcea)
+			if (len(fct_calls) > 0):
+				for fcall in fct_calls:
+					self.set_function_color(fcall[0], _color)
+					self.set_function_color(fcall[1], _color)
+			return fct_calls
+		else:
+			return Enoki.FAIL
+		
+		
+	def set_function_color(self, _funcea, _color):
+		"""
+		Sets the background color of the function at the specified address. The value
+		of the color must be in the following format: 0xBBGGRR. Some colors
+		are defined in the header of the Enoki class.
+		
+		Example:
+		Red:
+		e.set_function_color(0x2C00, 0x0000FF)
+		
+		Blue:
+		e.set_function_color(0x2C00, 0xFF0000)
+		
+		Yellow:
+		e.set_function_color(0x2C00, Enoki.YELLOW)
+		
+		@param _funcea Address within the function
+		@param _color The background color to set.
+		@return Enoki.SUCCESS if the background color was changed. Enoki.FAIL otherwise.
+		"""
+		if (_funcea != BADADDR):
+			idc.SetColor(_funcea, CIC_FUNC, _color)
+			return Enoki.SUCCESS
+		return Enoki.FAIL		
 
 	def get_bytes_between(self, _startea, _endea):
 		"""
