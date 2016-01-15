@@ -881,7 +881,7 @@ class Enoki(object):
 			curea = NextHead(curea)
 		return near_calls
 		
-	def get_all_sub_functions_called(self, _funcea, _level=0):
+	def get_all_sub_functions_called(self, _funcea, _level=0, _visited=[]):
 		"""
 		Get all functions directly and indirectly called by the function at the given address. 
 		This function is recursive and will seek all sub function calls as well, therefore this
@@ -930,20 +930,24 @@ class Enoki(object):
 				if (xref.type == 17):
 					# Add the current address, the address of the call and the 
 					# name of the function called along with the depth.
-					call_info = [xref.frm, xref.to, GetFunctionName(xref.to), _level]	
-					print("[*]{:s}0x{:x}: {:s} -> {:s}.".format(
-						" " * _level,
-						call_info[0], 
-						GetFunctionName(call_info[0]), 
-						GetFunctionName(call_info[1])))				
-					sub_calls = self.get_all_sub_functions_called(xref.to, _level+1)
-					# Add calls to current ones
-					near_calls.append(call_info)
-					if (len(sub_calls) > 0):
-						near_calls += sub_calls
+					fname = GetFunctionName(xref.to)
+					if not fname in _visited:
+						_visited.append(fname)
+						call_info = [xref.frm, xref.to, fname, _level]	
+						print("[*]{:s}0x{:x}: {:s} -> {:s}.".format(
+							" " * _level,
+							call_info[0], 
+							GetFunctionName(call_info[0]), 
+							GetFunctionName(call_info[1])))				
+						sub_calls = self.get_all_sub_functions_called(xref.to, _level+1, _visited)
+						# Add calls to current ones
+						near_calls.append(call_info)
+						if (len(sub_calls) > 0):
+							near_calls += sub_calls
+						
 			# Next instruction in the function
 			curea = NextHead(curea)
-		return near_calls	
+		return near_calls		
 		
 	def get_functions_leading_to(self, _funcea):
 		"""
