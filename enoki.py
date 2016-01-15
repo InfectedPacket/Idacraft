@@ -940,7 +940,7 @@ class Enoki(object):
 					# Add calls to current ones
 					near_calls.append(call_info)
 					if (len(sub_calls) > 0):
-						near_calls.append(sub_calls)
+						near_calls += sub_calls
 			# Next instruction in the function
 			curea = NextHead(curea)
 		return near_calls	
@@ -1099,6 +1099,117 @@ class Enoki(object):
 				words.append(w)
 				curea += 1
 		return words
+	
+	def get_disasm_between(self, _startea, _endea):
+		"""
+		Returns a list of disassembled code between the two addresses
+		provided.
+		
+		Example:
+		Python>a = e.get_disasm_section(0x2C00, 0x2C10)
+		Python>a
+		['pop    ar0, 'sar     ar0, *', 'sar     ar1, *', 'lar     ar0, #106', ...]
+		
+		@param _startea The starting address of the section
+		@param _endea The ending address of the section
+		@return A list of instructions, returns an empty list ([]) if an error occured.
+		"""
+		lines = []
+		if (_startea != BADADDR and _endea != BADADDR):
+			if (_startea > _endea):
+				t = _startea
+				_startea = _endea
+				_endea = _startea
+			curea = _startea
+			
+			while (curea <= _endea):
+				disasm = self.get_disasm(curea)
+				lines.append(disasm)
+				curea = NextHead(curea)
+		return lines	
+	
+	def get_disasm_function_line(self, _funcea):
+		"""
+		Returns a list of disassembled instructions from the function at the
+		given address. 
+		
+		Example:
+		Python>a = e.get_disasm_function(0x2CD0)
+		Python>a
+		['popd    *+', 'sar     ar0, *+', 'sar     ar1, *', ...]
+		
+		@param _funcea Address within the function
+		@return A list of instructions, returns an empty list ([]) if an error occured.
+		"""		
+		if (_funcea != BADADDR):
+			func = self.get_function_at(_funcea)
+			return self.get_disasm_between(func.startEA, func.endEA)
+		return []
+	
+	def get_disasm_all_functions_from(self, _funcea):
+		"""
+		Retrieves all the disassembled codes of the function at the specified
+		address and all functions called from the function. This function is recursive
+		and can take a while to complete. Depending on the complexity of the root function,
+		it may also take considerable memory resources.
+		
+		If successful, this function returns a dictionary. The keys are the name
+		of the functions and the values are list of strings containing the instructions
+		of the function.
+		
+		Example:
+		Python>a = e.get_disasm_all_functions_from(0x2C00)
+		Python>print(a)
+		{'sub_2C00': ['popd    *+', 'sar     ar0, *+', 'sar     ar1, ...],
+		 ...
+		 'sub_23CC': ['popd    *+', 'sar     ar0, *+', 'sar     ar1, ...] }
+		
+		@param _funcea Address within the function
+		@return a dictionary using the key-value pair ("function_name", [instructions])
+		"""
+		fdisasm = {}
+		if (_funcea != BADADDR):
+			froot_disasm = self.get_disasm_function_line(_funcea)
+			froot_name = GetFunctionName(_funcea)
+			fdisasm[froot_name] = froot_disasm
+			fcalled = self.get_all_sub_functions_called(_funcea)
+			print(fcalled)
+			if (len(fcalled) > 0):
+				print("[*] Retrieving assembly from {:d} function(s).".format(len(fcalled)))
+				for finfo in fcalled:
+					fea = finfo[1]
+					fname = finfo[2]
+					fcode = self.get_disasm_function_line(fea)
+					fdisasm[fname] = fcode
+		return fdisasm
+	
+	def search_code_all_functions_from(self, _funcea, _search):
+		"""
+		This function searches all the disassembly of the function at the 
+		given address and all functions called from it for the specified 
+		regular expression.
+		
+		Example:
+		Python>a = e.search_code_all_functions_from(0x0800, "1EFh")
+		Python>print(a)
+		[('sub_0800', 'lacc #1EFh, *+'), ('sub_0800', 'lacc #1EFh, *+')]
+		
+		In the example above, two LACC instructions containing the "1EFh" is found
+		in the same function, hence it appears twice in the results.
+		
+		@param _funcea Address within the function to search
+		@param _search A regular expression to search for in the disassembled code.
+		@return A list of tuples containing the name of the function and the
+		matching instructions.
+		"""
+		results = []
+		if (_funcea != BADADDR):
+			disasm = self.get_disasm_all_functions_from(_funcea)
+			for fname, fcode in disasm.iteritems():
+				for ins in fcode:
+					if re.search(_search, ins):
+						results.append((fname, ins))
+		return results
 	
 	def save_range_to_file(self, _startea, _endea, _file):
 		"""
