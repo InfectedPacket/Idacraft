@@ -1176,7 +1176,7 @@ class Enoki(object):
 			froot_disasm = self.get_disasm_function_line(_funcea)
 			froot_name = GetFunctionName(_funcea)
 			fdisasm[froot_name] = froot_disasm
-			fcalled = self.get_all_sub_functions_called(_funcea)
+			fcalled = self.get_all_sub_functions_called(_funcea, _visited=[])
 			print(fcalled)
 			if (len(fcalled) > 0):
 				print("[*] Retrieving assembly from {:d} function(s).".format(len(fcalled)))
