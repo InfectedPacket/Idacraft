@@ -617,7 +617,7 @@ class Enoki(object):
 		@return The native IDA function object at the given address.
 		"""
 		if (_ea != BADADDR):
-			return idaapi.get_prev_func(idaapi.get_next_func(_ea).startEA)
+			return idaapi.get_func(_ea)
 		else:
 			return None
 		
@@ -916,7 +916,11 @@ class Enoki(object):
 		the depth relative to the first function.
 		"""	
 		# Retrieves the function at _funcea:
-		func = self.get_function_at(_funcea)		
+		func = self.get_function_at(_funcea)
+		# Make sure a function object was extracted
+		if (not func):
+			print("[-] Error getting function at 0x{:x}.".format(_funcea))
+			return []
 		# Boundaries:
 		startea = func.startEA
 		endea = func.endEA
@@ -1147,7 +1151,8 @@ class Enoki(object):
 		"""		
 		if (_funcea != BADADDR):
 			func = self.get_function_at(_funcea)
-			return self.get_disasm_between(func.startEA, func.endEA)
+			if (func):
+				return self.get_disasm_between(func.startEA, func.endEA)
 		return []
 	
 	def get_disasm_all_functions_from(self, _funcea):
