@@ -1152,7 +1152,7 @@ class Enoki(object):
 		if (_funcea != BADADDR):
 			func = self.get_function_at(_funcea)
 			if (func):
-				return self.get_disasm_between(func.startEA, func.endEA)
+				return self.get_disasm_between(func.startEA, func.endEA-1)
 		return []
 	
 	def get_disasm_all_functions_from(self, _funcea):
@@ -1191,6 +1191,113 @@ class Enoki(object):
 					fcode = self.get_disasm_function_line(fea)
 					fdisasm[fname] = fcode
 		return fdisasm
+	
+	def function_find_all(self, _funcea, _criteria):
+		"""
+		Retrieves all instructions within the specified function that matches
+		the strings provided in the list '_criteria'.
+		
+		Example:
+		Python>r = e.function_find_all(0xA8BF, ["popd", "#15Ah"])
+		Python>print(r)
+		['popd    *+              ; Pop Top of Stack', 
+		 'ldp     #15Ah           ']
+		
+		@param _funcea Address within the function to search
+		@param _criteria A list of regular expressions to match against
+			every instruction in the function.
+		@return A list of instructions matching the provided search criterias
+		"""
+		found_ins = []
+		if (_funcea != BADADDR):
+			if (not type(_criteria) in [list, tuple]):
+				_criteria = [_criteria]
+				
+			fdisasm = self.get_disasm_function_line(_funcea)
+			if (len(fdisasm) > 0):
+				for ins in fdisasm:
+					for crit in _criteria:
+						if (re.search(crit, ins)):
+							found_ins.append(ins)
+		return found_ins	
+	
+	
+	def function_contains_all(self, _funcea, _criteria):
+		"""
+		Verifies if ALL the regular expressions in the _criteria arguments
+		have a matching instruction in the function at the given address. If one
+		or more of the regular expression included does not match any instruction,
+		this function will return False.
+		
+		Example:
+			popd    *+
+			sar     ar0, *+
+			sar     ar1, *
+			lar     ar0, #1
+			lar     ar0, *0+, ar2 ;(dseg:0001)
+			...
+			
+			Python>e.function_contains_all(0xBFDC, ["popd", "lar\\s+ar"])
+			True
+			Python>e.function_contains_all(0xBFDC, ["popd", "lar\\s+ar7"])
+			False		
+			
+		@param _funcea Address within the function to search
+		@param _criteria A list of regular expressions to match against each instruction of
+				the function.
+		@return True if all regular expresions were matched, False otheriwse.
+		"""
+		if (_funcea != BADADDR):
+			if (not type(_criteria) in [list, tuple]):
+				_criteria = [_criteria]
+
+			fdisasm = self.get_disasm_function_line(_funcea)
+			
+			if (len(fdisasm) > 0):
+				for crit in _criteria:
+					idx = 0
+					matched = False
+					
+					while (idx < len(fdisasm) and not matched):
+						ins = fdisasm[idx]
+						if (re.search(crit, ins)):
+							matched = True
+							
+						idx += 1
+						
+					if (not matched):
+						return False
+						
+				return True
+		return False
+	
+	def find_all_functions_contain(self, _criteria, _startea=MinEA(), _endea=MaxEA()):
+		"""
+		This function will look for all functions between the given boundaries that contains
+		instructions matching all regular expresions in the given list.
+		
+		Example:
+		Python>e.find_all_functions_contain(["popd", "lar\\s+ar"], _startea=0x8F59, _endea=0x9000)
+		['sub_8F42', 'sub_8F97', 'sub_8FE8', ...]
+
+		Python>e.find_all_functions_contain(["popd", "lar\\s+ar7"], _startea=0x8000, _endea=0x8FFF)
+		[]
+
+		@param _criteria A list of regular expressions to match against each instruction of
+				the function.
+		@param _startea The starting address of the search. If no value is specified, MinEA() is
+				used.
+		@param _endea The ending address of the search. If no value is specified, MaxEA() is
+				used.				
+		"""
+		found = []
+		f = self.get_function_at(_startea)
+		while (f):
+			fname = GetFunctionName(f.startEA)
+			if (self.function_contains_all(f.startEA, _criteria)):
+				found.append(fname)
+			f = idaapi.get_next_func(f.endEA+1)
+		return found
 	
 	def search_code_all_functions_from(self, _funcea, _search):
 		"""
