@@ -764,7 +764,87 @@ class Enoki(object):
 		if IDA.
 		"""
 		return self.get_all_functions_instr(SegStart(_ea), SegEnd(_ea))
+	
+	def get_closest_previous_instr(self, _ea, _instruction, _max=20):
+		"""
+		Find the closest instruction matching the specified instructions above the 
+		specified address. 
 		
+		Example:
+		0x2C00 lacl  #FFh
+		0x2C01 sacl  *+
+		0x2C02 sbrk  #5
+		0x2C03 lar   ar1, *-
+		0x2C04 call SUB_02CC4
+		...
+		Python>e.get_closest_previous_instr(0x2C04, "lac")
+		(11264, 'lacl    #FF')
+		
+		If found, the function will return the address of the matching instruction 
+		and the matching instruction. You can specified a maximum of instructions
+		to look before giving up by setting the _max argument, which is set to 
+		20 per default.
+		
+		@param _ea The reference address to search from
+		@param _instruction A regular expression to match the required instruction
+		@param _max Maximum of instruction to look at before giving up.
+		@return A tuple containing the address and the matching instruction.
+		"""
+		found_ins = (BADADDR, "")
+		if (_ea != BADADDR):
+			step = 0
+			curea = _ea
+			found = False
+			while (step < _max and not found):
+				ins = GetMnem(curea)
+				if (re.search(_instruction, ins)):
+					found_ins = (curea, e.get_disasm(curea))
+					found = True
+				step += 1
+				curea = PrevHead(curea)
+				
+		return found_ins
+	
+	def get_closest_next_instr(self, _ea, _instruction, _max=20):
+		"""
+		Find the closest instruction matching the specified instructions above the 
+		specified address. 
+		
+		Example:
+		0x2C00 lacl  #FFh
+		0x2C01 sacl  *+
+		0x2C02 sbrk  #5
+		0x2C03 lar   ar1, *-
+		0x2C04 call SUB_02CC4
+		...
+		Python>e.get_closest_previous_instr(0x2C04, "lac")
+		(11264, 'lacl    #FF')
+		
+		If found, the function will return the address of the matching instruction 
+		and the matching instruction. You can specified a maximum of instructions
+		to look before giving up by setting the _max argument, which is set to 
+		20 per default.
+		
+		@param _ea The reference address to search from
+		@param _instruction A regular expression to match the required instruction
+		@param _max Maximum of instruction to look at before giving up.
+		@return A tuple containing the address and the matching instruction.
+		"""
+		found_ins = (BADADDR, "")
+		if (_ea != BADADDR):
+			step = 0
+			curea = _ea
+			found = False
+			while (step < _max and not found):
+				ins = GetMnem(curea)
+				if (re.search(_instruction, ins)):
+					found_ins = (curea, e.get_disasm(curea))
+					found = True
+				step += 1
+				curea = NextHead(curea)
+				
+		return found_ins	
+	
 	def get_similarity_ratios(self, func1, func2):
 		"""
 		Calculates the similarity ratios between 2 sets of functions and returns 
@@ -1047,7 +1127,6 @@ class Enoki(object):
 			return fct_calls
 		else:
 			return Enoki.FAIL
-		
 		
 	def set_function_color(self, _funcea, _color):
 		"""
