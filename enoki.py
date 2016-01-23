@@ -678,8 +678,8 @@ class Enoki(object):
 		@return double A value between 0 and 1, 0 indicating 2 completely different 
 		functions and 1 specifying identical functions.
 		"""
-		l1 = get_function_instructions(_ea_func1)
-		l2 = get_function_instructions(_ea_func2)
+		l1 = self.get_function_instructions(_ea_func1)
+		l2 = self.get_function_instructions(_ea_func2)
 		return self.compare_code(l1, l2)
 		
 	def get_function_instructions(self, _ea):
