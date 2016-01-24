@@ -415,6 +415,17 @@ class Enoki(object):
 		
 		return comment;  
 
+	def get_ea(self, _name):
+		"""
+		Returns the address of a named location. Returns Enoki.FAIL
+		if no address matches the supplied name.
+		@param _name Name of the location.
+		@return The address corresponding to the name.
+		"""
+		if (len(_name) > 0):
+			return LocByName(_name)
+		return Enoki.FAIL
+		
 	def get_disasm(self, _ea):
 		"""
 		Returns the disassembled code at the specified address.
@@ -620,6 +631,16 @@ class Enoki(object):
 			return idaapi.get_func(_ea)
 		else:
 			return None
+		
+	def get_function_name_at(self, _ea):
+		"""
+		Returns the name of the function at the given address if one is
+		defined.Returns an empty string if no function is defined at the 
+		address.
+		@param _ea An address within the function
+		@return The name of the function or an empty string.
+		"""
+		return GetFunctionName(_ea)
 		
 	def get_function_disasm(self, _ea):
 		"""
