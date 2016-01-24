@@ -646,11 +646,14 @@ class Enoki(object):
 		matrix_disasm = []
 		if (_ea != BADADDR):
 			current_func = self.get_function_at(_ea)
-			func_start = current_func.startEA
-			func_end = current_func.endEA
-			for ea in range(func_start, func_end):
-				inst_tokens = self.get_instruction_tokens(ea)
-				matrix_disasm.append(inst_tokens)
+			if (current_func):
+				func_start = current_func.startEA
+				func_end = current_func.endEA
+				for ea in range(func_start, func_end):
+					inst_tokens = self.get_instruction_tokens(ea)
+					matrix_disasm.append(inst_tokens)
+			else:
+				print("[-] No function found at 0x{:x}.".format(_ea))
 		return matrix_disasm
 	
 	def compare_code(self, _code1, _code2):
