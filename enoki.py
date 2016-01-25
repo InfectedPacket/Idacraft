@@ -768,13 +768,17 @@ class Enoki(object):
 		"""
 		functions = {}
 		curEA = _startea
-		func = self.get_function_at(_ea)
-		while (curEA <= _endea):
-			name = GetFunctionName(curEA)
-			functions[name] = func
-			func = idaapi.get_next_func(curEA)
-			curEA = func.startEA
-		return functions
+		func = self.get_function_at(curEA)
+		if (func):
+			while (curEA <= _endea):
+				name = GetFunctionName(curEA)
+				functions[name] = func
+				func = idaapi.get_next_func(curEA)
+				if (func):
+					curEA = func.startEA
+				else:
+					NextHead(curEA)
+			return functions
 		
 	def get_all_func_instr_seg(self, _ea=ScreenEA()):
 		"""
