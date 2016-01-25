@@ -1430,6 +1430,40 @@ class Enoki(object):
 						results.append((fname, ins))
 		return results
 	
+	def find_similar_functions_in_tree(self, _funcea, _startea, _threshold=1.0):
+		"""
+		Attempts to find other functions similar to the one specified in the call tree
+		of the given function.
+		
+		This function will accept the address of a function and navigate the call tree
+		of the second address provided. The instructions of both function will be compared
+		and if the similarity between both is above the specified threshold, the function
+		of the call tree is stored along with other found function and returns.
+		
+		The function returns a matrix in the following format:
+		[
+		 [<address1>, <name1>, ratio1],
+		 ...
+		 [<addressN>, <nameN>, ratioN]
+		]
+		
+		@param _funcea Address within the function to search
+		@param _funcea Address of the starting function of the call tree
+		@return A matrix containing the address, name and ratio of the functions
+				found.
+		"""
+		results = []
+		if (_funcea != BADADDR):
+			tree = self.get_all_sub_functions_called(_startea)
+			for fcall in tree:
+				fcalled_ea = fcall[1]
+				fcalled_name = fcall[2]
+				ratio = self.compare_functions(_funcea, fcalled_ea)
+				if (ratio >= _threshold):
+					results.append([fcalled_ea, fcalled_name, ratio])
+			
+		return results	
+	
 	def save_range_to_file(self, _startea, _endea, _file):
 		"""
 		Saves the chunk of bytes between the given start and end addresses into
