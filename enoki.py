@@ -122,12 +122,30 @@ class Enoki(object):
 		"""
 		Creates a comment at the given address.
 		
-		@param _ea: The address where the comment will be created.
-		@param _comment: The comment
-		@return IDAEngine.SUCCESS if the comment as created successfully,
-		IDAEngine.FAIL otherwise.
+		@param _ea The address where the comment will be created.
+		@param _comment The comment
+		@return Enoki.SUCCESS if the comment as created successfully,
+		Enoki.FAIL otherwise.
 		"""	
 		return idc.MakeComm(_ea, _comment)
+		
+	def append_comment(self, _ea, _comment):
+		"""
+		Appends a new comment to an instruction at the specified address.
+		
+		@param _ea: The address where the comment will be appended.
+		@param _comment The comment
+		@return Enoki.SUCCESS if the comment as created successfully,
+		Enoki.FAIL otherwise.		
+		"""
+		if (_ea != BADADDR):
+			cur_comment = Comment(_ea)
+			if (cur_comment != None and len(cur_comment) > 0):
+				comment = "{:s}\n{:s}".format(cur_comment, _comment)
+			else:
+				comment = _comment
+			return self.make_comment(_ea, comment)
+		return Enoki.FAIL
 		
 	def make_repeat_comment(self, _ea, _comment):
 		"""
