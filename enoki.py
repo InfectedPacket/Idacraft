@@ -91,6 +91,7 @@ class Enoki(object):
 	YELLOW  = 0x00FFFF
 	WHITE 	= 0xFFFFFF
 	BLACK	= 0x000000
+	CYAN	= 0xFFFF00
 	# Fancy colors
 	ABSOLUTE_ZERO 		= 0xBA4800
 	AFRICAN_VIOLET		= 0xBE84B2
@@ -100,8 +101,11 @@ class Enoki(object):
 	AZURE		=	0xFF7F00
 	BABY_BLUE	=	0xF0CF89
 	BABY_PINK	=	0xC2C2F4
+	BONE		=	0xE3DAC9
 	CADMIUM_ORANGE = 0x2D87ED
 	CITRINE 	=	0xE4D00A
+	CADET_BLUE	=	0x5F9EA0
+	CHAMOISEE	=	0xA0785A
 
 	logger = logging.getLogger(__name__)
 
@@ -631,6 +635,21 @@ class Enoki(object):
 			return idaapi.get_func(_ea)
 		else:
 			return None
+		
+	def set_function_name_at(self, _funcea, _name):
+		"""
+		Sets the name of the function located at the specified address,
+		if any.
+		
+		@param _funcea An address within the function
+		@param _name The new name of the function. Cannot be empty.
+		@return Enoki.SUCCESS or Enoki.FAIL on error.
+		"""
+		if (_funcea != BADADDR and len(_name) > 0):
+			func = self.get_function_at(_funcea)
+			if (func):
+				return idc.MakeName(func.startEA, _name)
+		return Enoki.FAIL	
 		
 	def get_function_name_at(self, _ea):
 		"""
