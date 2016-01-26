@@ -1365,7 +1365,41 @@ class Enoki(object):
 							found_ins.append(ins)
 		return found_ins	
 	
-	
+	def function_find_all_ea(self, _funcea, _criteria):
+		"""
+		Retrieves all instructions within the specified function that matches
+		the strings provided in the list '_criteria' along with the address the
+		matching instruction was found.
+		
+		Example:
+		Python>r = e.function_find_all(0xA8BF, ["popd", "#15Ah"])
+		Python>print(r)
+		[(0xA8C5, 'popd    *+              ; Pop Top of Stack'), 
+		 (0xA8D9, 'ldp     #15Ah           ')]
+		
+		@param _funcea Address within the function to search
+		@param _criteria A list of regular expressions to match against
+			every instruction in the function.
+		@return A list of instructions matching the provided search criterias
+		"""	
+		found_ins = []
+		if (_funcea != BADADDR):
+			if (not type(_criteria) in [list, tuple]):
+				_criteria = [_criteria]
+				
+			func = self.get_function_at(_funcea)
+			curea = func.startEA
+			while (curea < func.endEA):
+				ins_disasm = self.get_disasm(curea)
+				
+				for c in _criteria:
+					if (re.search(c, ins_disasm)):
+						found_ins.append((curea, ins_disasm))
+				
+				curea = NextHead(curea)
+				
+		return found_ins	
+		
 	def function_contains_all(self, _funcea, _criteria):
 		"""
 		Verifies if ALL the regular expressions in the _criteria arguments
