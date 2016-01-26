@@ -1184,7 +1184,7 @@ class Enoki(object):
 		function. Enoki.FAIL otherwise.		
 		"""
 		if (_funcea != BADADDR):
-			fct_calls = self.get_all_sub_functions_called(_funcea)
+			fct_calls = self.get_all_sub_functions_called(_funcea, _visited=[])
 			if (len(fct_calls) > 0):
 				for fcall in fct_calls:
 					self.set_function_color(fcall[0], _color)
@@ -1495,7 +1495,7 @@ class Enoki(object):
 		"""
 		results = []
 		if (_funcea != BADADDR):
-			tree = self.get_all_sub_functions_called(_startea)
+			tree = self.get_all_sub_functions_called(_startea, _visited=[])
 			for fcall in tree:
 				fcalled_ea = fcall[1]
 				fcalled_name = fcall[2]
