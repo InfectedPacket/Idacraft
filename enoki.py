@@ -976,7 +976,7 @@ class Enoki(object):
 		near_calls = self.get_functions_called_from(_funcea)
 		return len(near_calls) == 0
 		
-	def get_functions_called_by(self, _funcea):
+	def get_functions_called_by(self, _funcea, _display=True):
 		"""
 		Get all functions directly called by the function at the given address. This function
 		only extract functions called at the first level, i.e. this function is not recursive.
@@ -999,6 +999,7 @@ class Enoki(object):
 		[[0x2C03, 0x2CC0, 'SUB__02CC0'],[0x2C07, 0x2D78, 'SUB__02D78']]
 		
 		@param _funcea Address within the function
+		@param _display If True, display the results at the console.
 		@return Matrix containing the source, destination and name of the functions called.
 		"""
 		# Retrieves the function at _funcea:
@@ -1018,10 +1019,11 @@ class Enoki(object):
 					# name of the function called.
 					call_info = [xref.frm, xref.to, GetFunctionName(xref.to)]
 					near_calls.append(call_info)
-					print("[*] 0x{:x}: {:s} -> {:s}.".format(
-						call_info[0], 
-						GetFunctionName(call_info[0]), 
-						GetFunctionName(call_info[1])))
+					if (_display):
+						print("[*] 0x{:x}: {:s} -> {:s}.".format(
+							call_info[0], 
+							GetFunctionName(call_info[0]), 
+							GetFunctionName(call_info[1])))
 			# Next instruction in the function
 			curea = NextHead(curea)
 		return near_calls
