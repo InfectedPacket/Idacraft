@@ -122,12 +122,22 @@ class Enoki(object):
 		"""
 		Creates a comment at the given address.
 		
-		@param _ea The address where the comment will be created.
-		@param _comment The comment
+		@param _ea: The address where the comment will be created.
+		@param _comment: The comment
 		@return Enoki.SUCCESS if the comment as created successfully,
 		Enoki.FAIL otherwise.
 		"""	
 		return idc.MakeComm(_ea, _comment)
+		
+	def clear_comment(self, _ea):
+		"""
+		Removes any comment at the given address.
+		
+		@param _ea: The address where the comment will be removed.
+		@return Enoki.SUCCESS if the comment as created successfully,
+		Enoki.FAIL otherwise.		
+		"""
+		return self.make_comment(_ea, "")
 		
 	def append_comment(self, _ea, _comment):
 		"""
@@ -1088,8 +1098,8 @@ class Enoki(object):
 						print("[*]{:s}0x{:x}: {:s} -> {:s}.".format(
 							" " * _level,
 							call_info[0], 
-							GetFunctionName(call_info[0]), 
-							GetFunctionName(call_info[1])))				
+							self.get_function_name_at(call_info[0]), 
+							self.get_function_name_at(call_info[1])))		
 						sub_calls = self.get_all_sub_functions_called(xref.to, _level+1, _visited)
 						# Add calls to current ones
 						near_calls.append(call_info)
