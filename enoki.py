@@ -702,6 +702,44 @@ class Enoki(object):
 		...
 		s = get_function_disasm(0x2C00)
 		print(s)
+		[['pop', 'r1'], ['load', 'acc,', '0'], ['jmp', '0x2C0A']]
+		
+		Note that the tokenization is done using white spaces only, so any commas will remain
+		as part of the token.
+		
+		@param _ea An address within the function.
+		@return A matrix of tuples containing the address of the instruction and a 
+		list of tokenized instructions contained in the function at the specified address.
+		
+		"""
+		matrix_disasm = []
+		if (_ea != BADADDR):
+			current_func = self.get_function_at(_ea)
+			if (current_func):
+				func_start = current_func.startEA
+				func_end = current_func.endEA
+				curea = func_start
+				while(curea < func_end):
+					inst_tokens = self.get_instruction_tokens(curea)
+					matrix_disasm.append(inst_tokens)
+					curea = NextHead(curea)				
+			else:
+				print("[-] No function found at 0x{:x}.".format(_ea))
+		return matrix_disasm		
+		
+	def get_function_disasm_with_ea(self, _ea):
+		"""
+		This function retrieves all of the disassembled and tokenized instructions 
+		of the function located at the specified address.
+		
+		Example:
+		...
+		0x2C00:	pop r1
+		0x2C01: load acc, 0
+		0x2C03: jmp 0x2C0A
+		...
+		s = get_function_disasm(0x2C00)
+		print(s)
 		[(0x2C00, ['pop', 'r1']), (0x2C01, ['load', 'acc,', '0']), (0x2C03, ['jmp', '0x2C0A'])]
 		
 		Note that the tokenization is done using white spaces only, so any commas will remain
