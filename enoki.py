@@ -1079,6 +1079,50 @@ class Enoki(object):
 			curea = NextHead(curea)
 		return near_calls
 		
+	def get_function_flowchart(self, _funcea):
+		"""
+		Returns the flowchart of the function specified at the given address.
+		
+		@param _funcea An address within the function
+		@return A FlowChart object or Enoki.FAIL if the address given is invalid,
+		or no function were found at the address.
+		"""
+		if (_funcea != BADADDR):
+			func = self.get_function_at(_funcea)
+			if (func):
+				return idaapi.FlowChart(func)
+		return Enoki.FAIL
+		
+	def get_code_block_boundaries(self, _funcea):
+		"""
+		Returns all the code blocks of a given function, i.e. code segment
+		between branches/returns and other jumps except for calls.
+		
+		Example:
+		0x2C00 pop *
+		0x2C01 load r1, *+
+		...
+		0x2C15 jmp 0x2C20
+		0x2C16 call 0x03D0
+		...
+		0x2C20 jne r2, 0x2C3D
+		...
+		
+		Python>c_blks = e.get_code_block_boundaries(0x2C00)
+		Python>c_blks
+		[(0x2C00, 0x2C15), (0x2C15, 0x2C20), ...]
+		
+		@param _funcea An address within the function
+		@return A list of tuples containing the start of the block (inclusive) and the 
+		end of the block (exclusive). Returns an empty list on error.
+		"""
+		blks = []
+		fc = self.get_function_flowchart(_funcea)
+		if (fc != Enoki.FAIL):
+			for blk in fc:
+				blks.append(blk.startEA, blk.endEA)
+		return blks		
+		
 	def get_all_sub_functions_called(self, _funcea, _level=0, _visited=[]):
 		"""
 		Get all functions directly and indirectly called by the function at the given address. 
