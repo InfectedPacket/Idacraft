@@ -1093,7 +1093,7 @@ class Enoki(object):
 				return idaapi.FlowChart(func)
 		return Enoki.FAIL
 		
-	def get_code_block_boundaries(self, _funcea):
+	def get_func_block_bounds(self, _funcea):
 		"""
 		Returns all the code blocks of a given function, i.e. code segment
 		between branches/returns and other jumps except for calls.
@@ -1120,7 +1120,7 @@ class Enoki(object):
 		fc = self.get_function_flowchart(_funcea)
 		if (fc != Enoki.FAIL):
 			for blk in fc:
-				blks.append(blk.startEA, blk.endEA)
+				blks.append((blk.startEA, blk.endEA))
 		return blks		
 		
 	def get_all_sub_functions_called(self, _funcea, _level=0, _visited=[]):
