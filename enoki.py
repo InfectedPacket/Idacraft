@@ -139,6 +139,39 @@ class Enoki(object):
 		"""
 		return self.make_comment(_ea, "")
 		
+	def clear_all_comments(self, _startea, _endea):
+		"""
+		Removes all comment between the given addresses.
+		
+		@param _startea: The start address.
+		@param _endea: The end address.
+		@return Enoki.SUCCESS if all the comments were removed,
+		Enoki.FAIL otherwise.		
+		"""	
+		if (_startea != BADADDR and _endea != BADADDR):
+			curea = _startea
+			error = Enoki.SUCCESS
+			while (curea < _endea):
+				r = self.clear_comment(curea)
+				curea = NextHead(curea)
+				if (r == Enoki.FAIL):
+					error = Enoki.FAIL
+		return error
+
+	def clear_function_comments(self, _funcea):
+		"""
+		Removes all comments in the function at the specified address.
+		
+		@param _funcea: An address within the function
+		@return Enoki.SUCCESS if all the comments were removed,
+		Enoki.FAIL otherwise.		
+		"""		
+		func = self.get_function_at(_funcea)
+		if (func):
+			return self.clear_all_comments(func.startEA, func.endEA)
+		else:
+			return Enoki.FAIL
+		
 	def append_comment(self, _ea, _comment):
 		"""
 		Appends a new comment to an instruction at the specified address.
@@ -347,6 +380,38 @@ class Enoki(object):
   
 	def get_dword_at(self, _ea):
 		return idc.Dword(_ea)
+		
+	def get_all_bytes_between(self, _startea, _endea):
+		"""
+		Returns all bytes between the given addresses.
+		@param _startea The starting address
+		@param _endea The ending address
+		@return A list containing all bytes between the given addresses.
+		"""		
+		bytes = []
+		if (_startea != BADADDR and _endea != BADADDR):
+			curea = _startea
+			while (curea < _endea):
+				bytes.append(self.get_byte_at(curea))
+				curea = NextHead(curea)
+  
+		return bytes		
+		
+	def get_all_words_between(self, _startea, _endea):
+		"""
+		Returns all words between the given addresses.
+		@param _startea The starting address
+		@param _endea The ending address
+		@return A list containing all words between the given addresses.
+		"""		
+		words = []
+		if (_startea != BADADDR and _endea != BADADDR):
+			curea = _startea
+			while (curea < _endea):
+				words.append(self.get_word_at(curea))
+				curea = NextHead(curea)
+  
+		return words		
 		
 	def get_all_strings(self, _filter='', 
 		_encoding=(Strings.STR_UNICODE | Strings.STR_C)):
@@ -1122,6 +1187,22 @@ class Enoki(object):
 			for blk in fc:
 				blks.append((blk.startEA, blk.endEA))
 		return blks		
+		
+	def get_block_at(self, _funcea):
+		"""
+		Retrieves the code block at the given address
+		@param _funcea An address within the function
+		@return A tuple containing the boundaries of the corresponding code block.
+		returns (BADADDR, BADADDR) if none found.
+		"""
+		found = (BADADDR, BADADDR)
+		if (_funcea != BADADDR):
+			blks = self.get_func_block_bounds(_funcea)
+			if (len(blks) > 0):
+				for (b_start, b_end) in blks:
+					if (_funcea >= b_start and _funcea < b_end):
+						return (b_start, b_end)
+		return found		
 		
 	def get_all_sub_functions_called(self, _funcea, _level=0, _visited=[]):
 		"""
