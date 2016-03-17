@@ -153,7 +153,7 @@ class Enoki(object):
 			error = Enoki.SUCCESS
 			while (curea < _endea):
 				r = self.clear_comment(curea)
-				curea = NextHead(curea)
+				curea = idc.NextHead(curea)
 				if (r == Enoki.FAIL):
 					error = Enoki.FAIL
 		return error
@@ -232,6 +232,44 @@ class Enoki(object):
 			return idc.SetSegmentType(_startea, _type)
 		else:
 			return Enoki.FAIL
+  
+	def get_segment(self, _ea):
+		return idaapi.getseg(_ea)
+  
+	def get_segment_type(self, _ea):
+		return self.get_seg_attribute(_ea, idc.SEGATTR_TYPE)
+  
+	def segment_is_code(self, _segea):
+		return self.get_segment_type(_segea) == self.SEG_TYPE_CODE
+  
+	def segment_is_data(self, _segea):
+		return self.get_segment_type(_segea) == self.SEG_TYPE_DATA  
+  
+	def get_seg_attribute(self, _segea, _attr):
+		"""
+		Sets an attribute to the segment at the given address. The available
+		attributes are:
+		  SEGATTR_START          starting address
+		  SEGATTR_END            ending address
+		  SEGATTR_ALIGN          alignment
+		  SEGATTR_COMB           combination
+		  SEGATTR_PERM           permissions
+		  SEGATTR_BITNESS        bitness (0: 16, 1: 32, 2: 64 bit segment)
+		  SEGATTR_FLAGS          segment flags
+		  SEGATTR_SEL            segment selector
+		  SEGATTR_ES             default ES value
+		  SEGATTR_CS             default CS value
+		  SEGATTR_SS             default SS value
+		  SEGATTR_DS             default DS value
+		  SEGATTR_FS             default FS value
+		  SEGATTR_GS             default GS value
+		  SEGATTR_TYPE           segment type
+		  SEGATTR_COLOR          segment color
+		@param _segea Address within the segment to be modified.
+		@param _attr The attribute to change. This is one of the value listed above.
+		@param _value The value of the attibute.
+		"""
+		return idc.GetSegmentAttr(_segea, _attr, _value)  
   
 	def create_selector(self, _sel, _value):
 		return idc.SetSelector(_sel, _value)
@@ -520,8 +558,17 @@ class Enoki(object):
 		@return The address corresponding to the name.
 		"""
 		if (len(_name) > 0):
-			return LocByName(_name)
+			return idc.LocByName(_name)
 		return Enoki.FAIL
+		
+	def get_ea_label(self, _ea):
+		"""
+		Returns the label of an address if any. Returns an empty string
+		if no label is assigned to the address.
+		@param _ea Address of the location.
+		@return The label set to the address if any, empty string otherwise.
+		"""	
+		return idc.Name(_ea)
 		
 	def get_disasm(self, _ea):
 		"""
